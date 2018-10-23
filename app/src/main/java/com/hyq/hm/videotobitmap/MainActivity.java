@@ -6,6 +6,8 @@ import android.os.Bundle;
 
 import com.hyq.hm.gifencoder.GifExtractor;
 
+import java.io.File;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -13,8 +15,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        GifExtractor gifExtractor = new GifExtractor(this, Environment.getExternalStorageDirectory().getAbsolutePath() + "/HMSDK/video/1524204109321.mp4");
-        gifExtractor.encoder(Environment.getExternalStorageDirectory().getAbsolutePath() + "/HMSDK/test_1524204109321.gif", 0, 15 * 1000, 15, 320, 240);
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/HMSDK/test_1535007031957.gif";
+        File file = new File(path);
+        if(file.exists()){
+            file.delete();
+        }
+        GifExtractor gifExtractor = new GifExtractor(this, Environment.getExternalStorageDirectory().getAbsolutePath() + "/HMSDK/video/1535007031957.mp4");
+        gifExtractor.encoder(path, 0, 10 * 1000, 15,15, 320, 240);
     }
 
 }

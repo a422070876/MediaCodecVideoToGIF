@@ -3,10 +3,13 @@ package com.hyq.hm.gifencoder;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.media.Image;
+import android.media.ImageReader;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
@@ -60,13 +63,14 @@ public class GifExtractor {
         encoder(gifPath,0,duration);
     }
     public void encoder(String gifPath,long begin, long end){
-        encoder(gifPath,begin,end,0);
+        encoder(gifPath,begin,end,15,15);
     }
-    public void encoder(String gifPath,long begin, long end,int fps){
-        encoder(gifPath,begin,end,fps,-1,-1);
+    public void encoder(String gifPath,long begin, long end,int fps,int speed){
+        encoder(gifPath,begin,end,fps,speed,-1,-1);
     }
 
-    public void encoder(final String gifPath, final long begin, final long end, final int fps, final int gifWidth, final int gifHeight){
+    public void encoder(final String gifPath, final long begin, final long end, final int fps,final int speed, final int gifWidth, final int gifHeight){
+
         if(begin > duration){
             throw new RuntimeException("开始时间不能大于视频时长");
         }
@@ -93,17 +97,27 @@ public class GifExtractor {
                     e.printStackTrace();
                 }
                 format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
-                videoDecoder.configure(format, null, null, 0);
-                videoDecoder.start();
 
                 int width = format.getInteger(MediaFormat.KEY_WIDTH);
                 int height = format.getInteger(MediaFormat.KEY_HEIGHT);
 
+                videoDecoder.configure(format, null, null, 0);
+                videoDecoder.start();
+
+
+
                 GIFEncoder encoder = null;
 
                 MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-
-                long frameTime = 1000/fps;
+                int f = fps;
+                if(f <= 0){
+                    f = 15;
+                }
+                int s = speed;
+                if(s <= 0){
+                    s = f;
+                }
+                long frameTime = 1000/f;
                 long startTime = begin;
                 while (true){
                     int run = extractorVideoInputBuffer(videoExtractor,videoDecoder);
@@ -122,12 +136,13 @@ public class GifExtractor {
                                     }
                                     if(encoder == null){
                                         encoder = new GIFEncoder();
-                                        encoder.setFrameRate(fps);
+                                        encoder.setFrameRate(s);
                                         encoder.init(bitmap);
                                         encoder.start(gifPath);
                                     }else{
                                         encoder.addFrame(bitmap);
                                     }
+
                                     int p = (int) ((startTime - begin)*100/(endTime - begin));
                                     Log.d("====================","p = "+ p);//进度
                                     startTime += frameTime;
